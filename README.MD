@@ -19,21 +19,21 @@ def "test dsl emergency"() {
 			add 'emergency' to 'EmergencyState'
 			add 'off' to 'OffState'
 			enter { ++enterOff }
-			leave { ++leaveOff}
+			leave { ++leaveOff }
 		}
 		state('OnState') {
 			add 'on' to 'OnState'
 			add 'emergency' to 'EmergencyState'
 			add 'off' to 'OffState'
 			enter { ++enterOn }
-			leave { ++leaveOn}
+			leave { ++leaveOn }
 		}
 		state('EmergencyState') {
 			add 'on' to 'EmergencyState'
 			add 'normal' to 'OffState'
 			add 'off' to 'EmergencyState'
 			enter { ++enterEmergency }
-			leave { ++leaveEmergency}
+			leave { ++leaveEmergency }
 		}
 	}
 	stateMachine.transition('off')
