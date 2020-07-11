@@ -15,6 +15,11 @@ class StateMachine {
 		return currentState
 	}
 	
+	void setInitState(State state) {
+		this.initState = state
+		initState?.enter?.call()
+	}
+	
 	@Override
 	public String toString() {
 		

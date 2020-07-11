@@ -122,20 +122,22 @@ class StateDSL {
 		state.transitions.each { verifyMachine(it.value, passed) }
 	}
 	
-	private class StateDelegate {
+	class StateDelegate {
+		
+		private StateDelegate() {}
 		
 		State state
 		
-		Map<String, Closure> add(String transition) {
+		To add(String transition) {
 
 			if (statesTransitionToState.containsKey(state) && statesTransitionToState.get(state).containsKey(transition)) {
 				throw new IllegalArgumentException("Duplicate transitions!")
 			}
 
-			if (!statesTransitionToState.containsKey(state)) {
+			if (!statesTransitionToState.containsKey(state.name)) {
 				statesTransitionToState[state.name] = [:]
 			}
-			return [to : {followState -> statesTransitionToState[state.name][transition] = followState}]
+			return new To(transition)
 		}
 		
 		void enter(Closure closure) {
@@ -144,6 +146,20 @@ class StateDSL {
 		
 		void leave(Closure closure) {
 			state.leave = closure
+		}
+		
+		class To {
+			
+			String transition
+			
+			private To(String transition) {
+				this.transition = transition
+			}
+			
+			void to (String followState) {
+				statesTransitionToState[state.name][transition] = followState
+			}
+			
 		}
 	}
 	
