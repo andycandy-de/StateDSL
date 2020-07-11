@@ -129,52 +129,53 @@ class StateDSLTest extends Specification {
 		final IllegalStateException exception = thrown()
 	}
 	
-	def "test dsl emergency"() {
+	def "test emergency off machine"() {
 		setup:
 		int enterOff = 0
 		int leaveOff = 0
 		int enterOn = 0
 		int leaveOn = 0
-		int enterEmergency = 0
-		int leaveEmergency = 0
+		int enterEmergencyOff = 0
+		int leaveEmergencyOff = 0
 		
 		when:
 		StateMachine stateMachine = state.machine {
 			state('OffState') init {
 				add 'on' to 'OnState'
-				add 'emergency' to 'EmergencyState'
+				add 'emergencyOff' to 'EmergencyOffState'
 				add 'off' to 'OffState'
 				enter { ++enterOff }
 				leave { ++leaveOff}
 			}
 			state('OnState') {
 				add 'on' to 'OnState'
-				add 'emergency' to 'EmergencyState'
+				add 'emergencyOff' to 'EmergencyOffState'
 				add 'off' to 'OffState'
 				enter { ++enterOn }
 				leave { ++leaveOn}
 			}
-			state('EmergencyState') {
-				add 'on' to 'EmergencyState'
+			state('EmergencyOffState') {
+				add 'on' to 'EmergencyOffState'
 				add 'normal' to 'OffState'
-				add 'off' to 'EmergencyState'
-				enter { ++enterEmergency }
-				leave { ++leaveEmergency}
+				add 'off' to 'EmergencyOffState'
+				enter { ++enterEmergencyOff }
+				leave { ++leaveEmergencyOff}
 			}
 		}
 		stateMachine.transition('off')
 		stateMachine.transition('on')
-		State curr = stateMachine.transition('emergency')
+		stateMachine.transition('emergencyOff')
+		State curr = stateMachine.transition('normal')
 		
 		then:
 		stateMachine != null
-		curr.name == 'EmergencyState'
+		curr.name == 'OffState'
 		
-		enterOff == 2
+		enterOff == 3
 		leaveOff == 2
 		enterOn == 1
 		leaveOn == 1
-		enterEmergency == 1
-		leaveEmergency == 0
+		enterEmergencyOff == 1
+		leaveEmergencyOff == 1
 	}
 }
