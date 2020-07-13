@@ -1,11 +1,13 @@
 package de.andycandy.state_dsl
 
-import de.andycandy.state_dsl.State
+import org.junit.Test
+
 import de.andycandy.state_dsl.StateMachine.StateImpl
 import spock.lang.Specification
 
 class StateMachineSpec extends Specification {
 	
+	@Test
 	def 'test state maschine'() {
 		setup:
 		boolean leave = false

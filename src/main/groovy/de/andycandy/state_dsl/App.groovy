@@ -21,7 +21,7 @@ class App {
 			System.exit(-1)
 		}
 		
-		evaluate(file)
+		println evaluate(file)
     }
 	
 	static Object evaluate(File file) {

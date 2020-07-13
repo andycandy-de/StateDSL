@@ -2,13 +2,16 @@ package de.andycandy.state_dsl
 
 import static de.andycandy.state_dsl.StateDSL.stateMachine
 
+import org.junit.Test
+
 import de.andycandy.state_dsl.StateDSL.state
 import groovy.transform.CompileStatic
 import de.andycandy.state_dsl.State
 import spock.lang.Specification
 
 class StateDSLSpec extends Specification {
-
+	
+	@Test
 	def "test dsl with dot"() {
 		setup:
 		boolean leaveMyState = false
@@ -42,6 +45,7 @@ class StateDSLSpec extends Specification {
 		enterAnyState
 	}
 	
+	@Test
 	def "test dsl camelCase"() {
 		setup:
 		boolean leaveMyState = false
@@ -82,6 +86,7 @@ class StateDSLSpec extends Specification {
 		enterMyState
 	}
 	
+	@Test
 	def "test dsl unresolved state"() {
 		when:
 		StateMachine stateMachine = state.machine {
@@ -108,7 +113,7 @@ class StateDSLSpec extends Specification {
 		exception.message == 'State machine contains unattainable states: [neverFound]'
 	}
 	
-	
+	@Test
 	def "test dsl no init"() {
 		when:
 		StateMachine stateMachine = state.machine {
@@ -133,6 +138,7 @@ class StateDSLSpec extends Specification {
 		exception.message == 'Init state cannot be null!'
 	}
 	
+	@Test
 	def "test emergency off machine"() {
 		setup:
 		int enterOff = 0
@@ -183,7 +189,7 @@ class StateDSLSpec extends Specification {
 		leaveEmergencyOff == 1
 	}
 	
-	
+	@Test
 	def "test ignoreUnkownInput"() {		
 		when:
 		StateMachine stateMachine = state.machine(ignoreUnkownInput: true) {
@@ -201,7 +207,7 @@ class StateDSLSpec extends Specification {
 		curr.name == 'InitState'
 	}
 	
-	
+	@Test	
 	def "test dont ignoreUnkownInput"() {
 		when:
 		StateMachine stateMachine = state.machine {
@@ -219,6 +225,7 @@ class StateDSLSpec extends Specification {
 		exception.message == 'The input \'stuff\' is not defined!'
 	}
 	
+	@Test
 	def "test following state not defined"() {
 		when:
 		StateMachine stateMachine = state.machine {
@@ -237,6 +244,7 @@ class StateDSLSpec extends Specification {
 		exception.message == 'Following state \'NotDefinedState\' not defined!'
 	}
 	
+	@Test
 	def "test init state"() {
 		when:
 		StateMachine stateMachine = state.machine {
@@ -254,6 +262,7 @@ class StateDSLSpec extends Specification {
 		stateMachine.initState.name == 'InitState'
 	}
 	
+	@Test
 	def "test duplicate transition exeption"() {
 		when:
 		StateMachine stateMachine = state.machine {
@@ -278,6 +287,7 @@ class StateDSLSpec extends Specification {
 		exception.message == 'Duplicate transitions!'
 	}
 	
+	@Test
 	def "test duplicate init exeption"() {
 		when:
 		StateMachine stateMachine = state.machine {
@@ -299,6 +309,7 @@ class StateDSLSpec extends Specification {
 		exception.message == 'Just one state can be an init state!'
 	}
 	
+	@Test
 	def "test duplicate init on same state"() {
 		setup:
 		boolean enterInit = false
@@ -327,6 +338,7 @@ class StateDSLSpec extends Specification {
 		enterInit
 	}
 	
+	@Test
 	def "test multiple enter and leave"() {
 		setup:
 		String enterInit = ''

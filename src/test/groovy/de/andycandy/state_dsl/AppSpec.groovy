@@ -1,9 +1,12 @@
 package de.andycandy.state_dsl
 
+import org.junit.Test
+
 import spock.lang.Specification
 
 class AppSpec extends Specification {
 	
+	@Test
 	def "test app"() {
 		setup:
 		String path = Thread.currentThread().getContextClassLoader().getResource('de/andycandy/state_dsl/simple_state.dsl').path
@@ -12,7 +15,7 @@ class AppSpec extends Specification {
 		App.main(path)
 	}
 	
-	
+	@Test
 	def "test app evaluate"() {
 		setup:
 		File file = new File(Thread.currentThread().getContextClassLoader().getResource('de/andycandy/state_dsl/simple_state.dsl').path)
@@ -21,6 +24,6 @@ class AppSpec extends Specification {
 		def result = App.evaluate(file)
 		
 		then:
-		result == 'enter NextState;leave NextState;enter NextState;leave NextState;enter NextState;'
+		result == ['enter InitState', 'leave InitState', 'enter NextState', 'leave NextState', 'enter InitState']
 	}
 }
