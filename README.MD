@@ -3,7 +3,6 @@
 A simple groovy dsl to create a state machine:
 
 ```
-
 def result = ''
 
 def stateMachine = state.machine {

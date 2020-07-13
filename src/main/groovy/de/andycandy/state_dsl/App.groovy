@@ -12,11 +12,13 @@ class App {
 		
 		if (args.length != 1) {
 			System.err.println('Usage: state [file]')
+			System.exit(-1)
 		}
 		
 		File file = new File(args[0])
 		if (!file.isFile()) {
 			System.err.println('File not exists!')
+			System.exit(-1)
 		}
 		
 		evaluate(file)
