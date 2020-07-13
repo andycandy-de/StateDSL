@@ -1,26 +1,37 @@
 package de.andycandy.state_dsl
 
-import java.security.PrivateKey
+import de.andycandy.state_dsl.StateMachine.StateBuildHelper
+import groovy.transform.CompileStatic
+import groovy.transform.NamedParam
+import groovy.transform.NamedParams
 
-import org.codehaus.groovy.util.StringUtil
-
-import groovy.json.StringEscapeUtils
-
+@CompileStatic
 class StateDSL {
 	
-	private Map<String, State> states = [:]
+	private Map<String, StateBuildHelper> states = [:]
 	
-	private Map<String, Map<String, String>> statesTransitionToState = [:]
-	
-	private State initState = null;
+	private String initState = null;
 	
 	static class state {
+		
 		static StateMachine machine(@DelegatesTo(value=StateDSL, strategy=Closure.DELEGATE_ONLY) Closure closure) {
 			stateMachine(closure)
+		}
+		
+		static StateMachine machine(
+			@NamedParams([@NamedParam(value='ignoreUnkownInput', type=Boolean)]) Map params,
+			@DelegatesTo(value=StateDSL, strategy=Closure.DELEGATE_ONLY) Closure closure) {
+			stateMachine(params, closure)
 		}
 	}
 	
 	static StateMachine stateMachine(@DelegatesTo(value=StateDSL, strategy=Closure.DELEGATE_ONLY) Closure closure) {
+		return stateMachine([:], closure)
+	}
+	
+	static StateMachine stateMachine(
+		@NamedParams([@NamedParam(value='ignoreUnkownInput', type=Boolean)]) Map params,
+		@DelegatesTo(value=StateDSL, strategy=Closure.DELEGATE_ONLY) Closure closure) {
 		
 		StateDSL stateDSL = new StateDSL()
 		
@@ -28,19 +39,20 @@ class StateDSL {
 		closure.resolveStrategy = Closure.DELEGATE_ONLY
 		closure.call()
 		
-		return StateDSL.buildMachine(stateDSL)	
+		boolean ignoreUnkownInput = Boolean.TRUE.equals(params['ignoreUnkownInput'])
+		
+		return StateMachine.createStateMachine(stateDSL.states.values(), stateDSL.initState, ignoreUnkownInput);
 	}
 	
 	void state(String name, @DelegatesTo(value=StateDelegate, strategy=Closure.DELEGATE_ONLY) Closure closure) {
 		
 		if (!states.containsKey(name)) {
-			states[name] = new State()
+			states[name] = new StateBuildHelper()
 		}
-		State state = states.get(name)
+		StateBuildHelper state = states[name]
 		state.name = name
 		
-		StateDelegate stateDelegate = new StateDelegate()
-		stateDelegate.state = state
+		StateDelegate stateDelegate = new StateDelegate(state)
 		
 		closure.delegate = stateDelegate
 		closure.resolveStrategy = Closure.DELEGATE_ONLY
@@ -53,99 +65,55 @@ class StateDSL {
 	
 	class InitState {
 		
+		String name
+		
 		InitState(name) {
 			this.name = name
 		}
 		
-		String name
-		
 		void init(@DelegatesTo(value=StateDelegate, strategy=Closure.DELEGATE_ONLY) Closure closure) {
-			if (initState != null && initState != states.get(name)) {
+			if (initState != null && initState != name) {
 				throw new IllegalArgumentException("Just one state can be an init state!")
 			}
 			
 			if (!states.containsKey(name)) {
-				states[name] = new State()
+				states[name] = new StateBuildHelper()
 			}
-			initState = states.get(name)
+			initState = name
 			
 			state(name, closure)
 		}
 	}
 	
-	private static StateMachine buildMachine(StateDSL stateDSL) {
-		
-		StateMachine stateMachine = new StateMachine()
-		stateDSL.states.each {
-			State state = it.value
-			stateMachine.states << state
-			stateDSL.statesTransitionToState.get(it.key)?.each {
-				State followState = stateDSL.states.get(it.value)
-				if (followState == null) {
-					throw new IllegalStateException("Following state not defined!")
-				}
-				state.transitions[it.key] = followState
-			}
-		}
-		stateMachine.initState = stateDSL.initState
-		stateMachine.currentState = stateDSL.initState
-		
-		verifyMachine(stateMachine)
-		
-		return stateMachine;
-	}
-	
-	private static verifyMachine(StateMachine stateMachine) {
-		
-		if (stateMachine.initState == null) {
-			throw new IllegalStateException('No init state defined!')
-		}
-		
-		Set<State> passed = []
-		verifyMachine(stateMachine.initState, passed)
-		
-		Set<State> notPassed = [] + stateMachine.states
-		notPassed.removeAll(passed);
-		
-		if (!notPassed.isEmpty()) {
-			String joined = String.join(", ", notPassed.collect { it.name }.toListString());
-			throw new IllegalStateException("State machine contains unattainable states: [${joined}]")
-		}
-	}
-	
-	private static verifyMachine(State state, Set<State> passed) {
-		if (passed.contains(state)) {
-			return
-		}
-		
-		passed.add(state)
-		state.transitions.each { verifyMachine(it.value, passed) }
-	}
-	
 	class StateDelegate {
 		
-		private StateDelegate() {}
+		StateBuildHelper state
 		
-		State state
+		private StateDelegate(StateBuildHelper state) {
+			this.state = state
+		}
 		
 		To add(String transition) {
 
-			if (statesTransitionToState.containsKey(state) && statesTransitionToState.get(state).containsKey(transition)) {
+			if (state.transitions[transition] != null) {
 				throw new IllegalArgumentException("Duplicate transitions!")
 			}
 
-			if (!statesTransitionToState.containsKey(state.name)) {
-				statesTransitionToState[state.name] = [:]
-			}
 			return new To(transition)
 		}
 		
-		void enter(Closure closure) {
-			state.enter = closure
+		void enter(@DelegatesTo(strategy = Closure.OWNER_ONLY) Closure closure) {
+			
+			closure.resolveStrategy = Closure.OWNER_ONLY
+			
+			state.enter << closure
 		}
 		
-		void leave(Closure closure) {
-			state.leave = closure
+		void leave(@DelegatesTo(strategy = Closure.OWNER_ONLY) Closure closure) {
+			
+			closure.resolveStrategy = Closure.OWNER_ONLY
+			
+			state.leave << closure
 		}
 		
 		class To {
@@ -157,10 +125,8 @@ class StateDSL {
 			}
 			
 			void to (String followState) {
-				statesTransitionToState[state.name][transition] = followState
+				state.transitions[transition] = followState
 			}
-			
 		}
 	}
-	
 }

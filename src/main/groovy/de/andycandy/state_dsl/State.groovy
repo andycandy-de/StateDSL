@@ -1,23 +1,16 @@
 package de.andycandy.state_dsl
 
-class State {
+import groovy.transform.CompileStatic
+
+@CompileStatic
+interface State {
 	
-	String name
+	String getName();
+
+	Map<String, State> getTransitions();
 	
-	Map<String, State> transitions = [:]
+	List<Closure> getEnter();
 	
-	Closure enter
-	
-	Closure leave
-	
-	@Override
-	public String toString() {
-		String transitionString = ' empty'
-		if (!transitions.isEmpty()) {
-			transitionString = ''
-			transitions.each { transitionString += "\n  ${it.key} -> ${it.value.name}" }
-		}
-		return "State: ${name}\nTransitions:$transitionString"
-	}
+	List<Closure> getLeave();
 	
 }

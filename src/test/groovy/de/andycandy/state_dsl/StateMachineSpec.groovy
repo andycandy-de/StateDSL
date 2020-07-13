@@ -1,8 +1,10 @@
 package de.andycandy.state_dsl
 
+import de.andycandy.state_dsl.State
+import de.andycandy.state_dsl.StateMachine.StateImpl
 import spock.lang.Specification
 
-class StateMachineTest extends Specification {
+class StateMachineSpec extends Specification {
 	
 	def 'test state maschine'() {
 		setup:
@@ -10,21 +12,22 @@ class StateMachineTest extends Specification {
 		boolean enter = false
 		StateMachine stateMachine = new StateMachine()
 		
-		State state1 = new State()
+		StateImpl state1 = new StateImpl()
 		state1.name = 'State1'
-		state1.leave = { leave = true }
+		state1.enter = []
+		state1.leave = Arrays.asList({ leave = true })
 		
-		State state2 = new State()
+		StateImpl state2 = new StateImpl()
 		state2.name = 'State2'
-		state2.enter = { enter = true }
+		state2.enter = Arrays.asList({ enter = true })
 		
-		state1.transitions << ['trans' : state2]
+		state1.transitions = ['trans' : state2]
 		
 		stateMachine.initState = state1
 		stateMachine.currentState = state1
 		
 		when:
-		State retState = stateMachine.transition('trans')
+		State retState = stateMachine.input('trans')
 		
 		then:
 		retState == state2
@@ -33,5 +36,4 @@ class StateMachineTest extends Specification {
 		enter
 		leave
 	}
-	
 }

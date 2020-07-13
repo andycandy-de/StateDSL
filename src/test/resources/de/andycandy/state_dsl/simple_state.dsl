@@ -1,8 +1,3 @@
-# StateDSL
-
-A simple groovy dsl to create a state machine:
-
-```
 
 def result = ''
 
@@ -23,4 +18,3 @@ stateMachine.input 'next'
 stateMachine.input 'back'
 
 result //should be: 'enter NextState;leave NextState;enter NextState;leave NextState;enter NextState;'
-```
