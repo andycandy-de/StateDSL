@@ -58,26 +58,12 @@ class SimpleStateMachine implements StateMachine {
 			throw new IllegalArgumentException("Init state cannot be null!")
 		}
 
-		Map<String, StateImpl> stateMap = [:]
-		Map<String, State> protectedStateMap = [:]
-		stateBuildHelpers.each {
-			State state = new StateImpl()
-			state.name = it.name
-			state.enter = it.enter
-			state.leave = it.leave
-			stateMap[it.name] = state
-			protectedStateMap[it.name] = ProtectionUtil.protectObject(State, state)
-		}
+		Map<String, StateImpl> stateImplMap = createStateImplMap(stateBuildHelpers)
+		Map<String, State> protectedStateMap = createProtectedStateMap(stateImplMap)
 
-		stateBuildHelpers.each { stateHelper ->
-			Map<String, State> transitions = [:]
-			stateHelper.transitions.each {
-				transitions[it.key] = protectedStateMap[it.value]
-				if (transitions[it.key] == null) {
-					throw new IllegalStateException("Following state '${it.value}' not defined!")
-				}
-			}
-			stateMap[stateHelper.name].transitions = Collections.unmodifiableMap(transitions)
+		stateBuildHelpers.each {			
+			Map<String, State> transitions = createTransitionMap(it, protectedStateMap)
+			stateImplMap[it.name].transitions = Collections.unmodifiableMap(transitions)
 		}
 
 		SimpleStateMachine stateMachine = new SimpleStateMachine()
@@ -88,6 +74,47 @@ class SimpleStateMachine implements StateMachine {
 		verifyMachine(stateMachine)
 
 		return ProtectionUtil.protectObject(StateMachine, stateMachine)
+	}
+	
+	private static Map<String, State> createTransitionMap(StateBuildHelper stateBuildHelper, Map<String, State> protectedStateMap) {
+		
+		Map<String, State> transitions = [:]
+		
+		stateBuildHelper.transitions.each {
+			
+			transitions[it.key] = protectedStateMap[it.value]
+			if (transitions[it.key] == null) {
+				throw new IllegalStateException("Following state '${it.value}' not defined!")
+			}
+		}
+		
+		return transitions
+	}
+	
+	private static Map<String, StateImpl> createStateImplMap(Collection<StateBuildHelper> stateBuildHelpers) {
+		
+		Map<String, StateImpl> stateMap = [:]
+		
+		stateBuildHelpers.each {
+			State state = new StateImpl()
+			state.name = it.name
+			state.enter = it.enter
+			state.leave = it.leave
+			stateMap[it.name] = state
+		}
+		
+		return stateMap
+	}
+	
+	private static Map<String, State> createProtectedStateMap(Map<String, StateImpl> stateImplMap) {
+		
+		Map<String, State> protectedStateMap = [:]
+		
+		stateImplMap.each {
+			protectedStateMap[it.key] = ProtectionUtil.protectObject(State, it.value)
+		}
+		
+		protectedStateMap
 	}
 
 	private static verifyMachine(StateMachine stateMachine) {

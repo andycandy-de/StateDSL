@@ -10,21 +10,30 @@ class App {
 
     static void main(String[] args) {
 		
+		App app = new App()
+		
+		println app.start(args)
+    }
+	
+	Object start(String[] args) {
+		
 		if (args.length != 1) {
-			System.err.println('Usage: state [file]')
-			System.exit(-1)
+			printErr('Usage: StateDSL [file]')
+			systemExit()
+			return
 		}
 		
 		File file = new File(args[0])
 		if (!file.isFile()) {
-			System.err.println('File not exists!')
-			System.exit(-1)
+			printErr("File ${file.absolutePath} not exists!")
+			systemExit()
+			return
 		}
 		
-		println evaluate(file)
-    }
+		return evaluate(file)
+	}
 	
-	static Object evaluate(File file) {
+	Object evaluate(File file) {
 		
 		ImportCustomizer importCustomizer = new ImportCustomizer()
 		importCustomizer.addStarImports('de.andycandy.state_dsl')
@@ -36,5 +45,13 @@ class App {
 		GroovyShell groovyShell = new GroovyShell(StateMachine.class.getClassLoader(), new Binding(), compilerConfiguration)
 		
 		groovyShell.evaluate(file)
+	}
+	
+	void printErr(String text) {
+		System.err.println(text)
+	}
+	
+	void systemExit() {
+		System.exit(-1)
 	}
 }

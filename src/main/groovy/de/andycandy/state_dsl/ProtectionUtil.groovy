@@ -8,10 +8,11 @@ class ProtectionUtil {
 
 	static <T> T protectObject(Class<T> interfaceClass, T toProtect) {
 
-	  def map = [:]
-	  interfaceClass.methods.each { map."$it.name" = createDelegateMethodClosure(it, toProtect) }
-	  Object.class.methods.each { map."$it.name" = createDelegateMethodClosure(it, toProtect) }
-
-	  return map.asType(interfaceClass)
+		Map<String, Closure> map = [:]
+		
+		interfaceClass.methods.each { map."$it.name" = createDelegateMethodClosure(it, toProtect) }
+		Object.class.methods.each { map."$it.name" = createDelegateMethodClosure(it, toProtect) }
+		
+		return map.asType(interfaceClass)
 	}
 }
