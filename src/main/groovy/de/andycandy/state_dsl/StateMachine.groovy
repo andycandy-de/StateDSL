@@ -10,7 +10,7 @@ class StateMachine {
 
 	private State currentState
 
-	private List<StateImpl> states = []
+	private List<State> states = []
 
 	private boolean ignoreUnkownInput = false
 
@@ -71,29 +71,30 @@ class StateMachine {
 		}
 
 		Map<String, StateImpl> stateMap = [:]
+		Map<String, State> protectedStateMap = [:]
 		stateBuildHelpers.each {
 			State state = new StateImpl()
 			state.name = it.name
 			state.enter = it.enter
 			state.leave = it.leave
 			stateMap[it.name] = state
+			protectedStateMap[it.name] = ProtectionUtil.protectObject(State, state)
 		}
 
 		stateBuildHelpers.each { stateHelper ->
 			Map<String, State> transitions = [:]
 			stateHelper.transitions.each {
-				transitions[it.key] = stateMap[it.value]
+				transitions[it.key] = protectedStateMap[it.value]
 				if (transitions[it.key] == null) {
 					throw new IllegalStateException("Following state '${it.value}' not defined!")
 				}
 			}
-			stateMap[stateHelper.name].transitions = transitions
-			stateMap[stateHelper.name].immutable()
+			stateMap[stateHelper.name].transitions = Collections.unmodifiableMap(transitions)
 		}
 
 		StateMachine stateMachine = new StateMachine()
-		stateMachine.states = Collections.unmodifiableList(stateMap.values().toList())
-		stateMachine.initState = stateMap[initState]
+		stateMachine.states = Collections.unmodifiableList(protectedStateMap.values().toList())
+		stateMachine.initState = protectedStateMap[initState]
 		stateMachine.ignoreUnkownInput = ignoreUnkownInput
 
 		verifyMachine(stateMachine)
@@ -126,59 +127,13 @@ class StateMachine {
 
 	static class StateImpl extends State {
 
-		private String name
+		String name
 
-		private Map<String, State> transitions
+		Map<String, State> transitions
 
-		private List<Closure> enter
+		List<Closure> enter
 
-		private List<Closure> leave
-
-		private immutable = false
-
-		private void setEnter(List<Closure> enter) {
-			checkMutable()
-			this.enter = Collections.unmodifiableList(enter)
-		}
-
-		private void setLeave(List<Closure> leave) {
-			checkMutable()
-			this.leave = Collections.unmodifiableList(leave)
-		}
-
-		private void setName(String name) {
-			checkMutable()
-			this.name = name
-		}
-
-		private void setTransitions(Map<String, State> transitions) {
-			checkMutable()
-			this.transitions = Collections.unmodifiableMap(transitions)
-		}
-
-		private void immutable() {
-			immutable = true
-		}
-
-		private checkMutable() {
-			if (immutable) throw new IllegalStateException("The state is not mutable!")
-		}
-
-		List getEnter() {
-			return Collections.unmodifiableList(enter)
-		}
-
-		List getLeave() {
-			return Collections.unmodifiableList(leave)
-		}
-
-		String getName() {
-			return name
-		}
-
-		Map getTransitions() {
-			return Collections.unmodifiableMap(transitions)
-		}
+		List<Closure> leave
 
 		@Override
 		public String toString() {

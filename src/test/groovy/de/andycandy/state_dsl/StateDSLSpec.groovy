@@ -375,4 +375,42 @@ class StateDSLSpec extends Specification {
 		stateMachine.transitions == ['init' : stateMachine.initState]
 		stateMachine.currentState.name == 'AnyState'
 	}
+		
+	@Test
+	def "test modify state name"() {
+		when:
+		StateMachine stateMachine = state.machine {
+			state('InitState') init {
+				add 'any' to 'AnyState'
+			}
+			state('AnyState') {
+				add 'init' to 'InitState'
+			}
+		}
+		
+		State currentState = stateMachine.currentState
+		currentState.name = 'hallo'
+		
+		then:
+		final ReadOnlyPropertyException exception = thrown()
+	}
+	
+	@Test
+	def "test modify state transition list"() {
+		when:
+		StateMachine stateMachine = state.machine {
+			state('InitState') init {
+				add 'any' to 'AnyState'
+			}
+			state('AnyState') {
+				add 'init' to 'InitState'
+			}
+		}
+		
+		Map<String, State> transitions = stateMachine.transitions
+		transitions['what'] = [:].asType(State)
+		
+		then:
+		final UnsupportedOperationException exception = thrown()
+	}
 }
