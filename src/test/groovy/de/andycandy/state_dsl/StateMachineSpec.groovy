@@ -2,7 +2,7 @@ package de.andycandy.state_dsl
 
 import org.junit.Test
 
-import de.andycandy.state_dsl.StateMachine.StateImpl
+import de.andycandy.state_dsl.SimpleStateMachine.StateImpl
 import spock.lang.Specification
 
 class StateMachineSpec extends Specification {
@@ -12,7 +12,7 @@ class StateMachineSpec extends Specification {
 		setup:
 		boolean leave = false
 		boolean enter = false
-		StateMachine stateMachine = new StateMachine()
+		SimpleStateMachine stateMachine = new SimpleStateMachine()
 		
 		StateImpl state1 = new StateImpl()
 		state1.name = 'State1'

@@ -396,7 +396,7 @@ class StateDSLSpec extends Specification {
 	}
 	
 	@Test
-	def "test modify state transition list"() {
+	def "test modify state transition map"() {
 		when:
 		StateMachine stateMachine = state.machine {
 			state('InitState') init {
@@ -412,5 +412,78 @@ class StateDSLSpec extends Specification {
 		
 		then:
 		final UnsupportedOperationException exception = thrown()
+	}
+	
+	@Test
+	def "test modify state list"() {
+		when:
+		StateMachine stateMachine = state.machine {
+			state('InitState') init {
+				add 'any' to 'AnyState'
+			}
+			state('AnyState') {
+				add 'init' to 'InitState'
+			}
+		}
+		
+		List<State> list = stateMachine.states
+		list << [:].asType(State)
+		
+		then:
+		final UnsupportedOperationException exception = thrown()
+	}
+	
+	@Test
+	def "test set state list"() {
+		when:
+		StateMachine stateMachine = state.machine {
+			state('InitState') init {
+				add 'any' to 'AnyState'
+			}
+			state('AnyState') {
+				add 'init' to 'InitState'
+			}
+		}
+		
+		stateMachine.states = []
+		
+		then:
+		final ReadOnlyPropertyException exception = thrown()
+	}
+		
+	@Test
+	def "test set current state"() {
+		when:
+		StateMachine stateMachine = state.machine {
+			state('InitState') init {
+				add 'any' to 'AnyState'
+			}
+			state('AnyState') {
+				add 'init' to 'InitState'
+			}
+		}
+		
+		stateMachine.currentState = [:].asType(State)
+		
+		then:
+		final ReadOnlyPropertyException exception = thrown()
+	}
+	
+	@Test
+	def "test set init state"() {
+		when:
+		StateMachine stateMachine = state.machine {
+			state('InitState') init {
+				add 'any' to 'AnyState'
+			}
+			state('AnyState') {
+				add 'init' to 'InitState'
+			}
+		}
+		
+		stateMachine.initState = [:].asType(State)
+		
+		then:
+		final ReadOnlyPropertyException exception = thrown()
 	}
 }

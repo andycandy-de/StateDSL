@@ -2,7 +2,7 @@ package de.andycandy.state_dsl
 
 import org.junit.Test
 
-import de.andycandy.state_dsl.StateMachine.StateImpl
+import de.andycandy.state_dsl.SimpleStateMachine.StateImpl
 import spock.lang.Specification
 
 class ProtectionUtilSpec extends Specification {

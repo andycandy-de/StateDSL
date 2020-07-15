@@ -1,6 +1,6 @@
 package de.andycandy.state_dsl
 
-import de.andycandy.state_dsl.StateMachine.StateBuildHelper
+import de.andycandy.state_dsl.SimpleStateMachine.StateBuildHelper
 import groovy.transform.CompileStatic
 import groovy.transform.NamedParam
 import groovy.transform.NamedParams
@@ -41,7 +41,7 @@ class StateDSL {
 		
 		boolean ignoreUnkownInput = Boolean.TRUE.equals(params['ignoreUnkownInput'])
 		
-		return StateMachine.createStateMachine(stateDSL.states.values(), stateDSL.initState, ignoreUnkownInput);
+		return SimpleStateMachine.createStateMachine(stateDSL.states.values(), stateDSL.initState, ignoreUnkownInput);
 	}
 	
 	void state(String name, @DelegatesTo(value=StateDelegate, strategy=Closure.DELEGATE_ONLY) Closure closure) {
